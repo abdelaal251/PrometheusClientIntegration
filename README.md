@@ -125,26 +125,3 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For questions or suggestions, please contact [yourname@example.com](mailto:yourname@example.com).
-```
-
-### Instructions for Adding the `README.md` File
-
-1. **Create the `README.md` file**:
-
-   In the root directory of your Django project repository, create a new file named `README.md`.
-
-2. **Paste the content**:
-
-   Copy and paste the content above into your `README.md` file.
-
-3. **Commit the `README.md` file**:
-
-   ```bash
-   git add README.md
-   git commit -m "Add README file with project details"
-   git push origin main
-   ```
