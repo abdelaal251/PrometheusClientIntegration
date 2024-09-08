@@ -76,6 +76,12 @@ jobs:
 
       - name: Test the Django endpoint
         run: |
+          # Option 1: Create the test file dynamically
+          echo "This is a test file." > testfile.txt
+          # Uncomment the line below to use Option 2 instead
+          # cp PrometheusIntegration/manage.py testfile.txt
+
+          # Test with different content types
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: application/json" -d '{}' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: text/plain" -d 'text content' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -F 'file=@testfile.txt' | grep 'Hello World'
