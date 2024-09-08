@@ -1,0 +1,87 @@
+name: Django Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: django
+          POSTGRES_PASSWORD: django
+          POSTGRES_DB: django_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install django psycopg2-binary
+
+      - name: Set up Django environment
+        env:
+          DJANGO_SECRET_KEY: 'fake-key'  # Use a fake key for testing
+          DJANGO_SETTINGS_MODULE: 'PrometheusIntegration.settings'
+          DATABASE_URL: 'postgres://django:django@localhost:5432/django_db'
+        run: |
+          cd PrometheusIntegration
+          python manage.py migrate
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install django
+
+      - name: Run Django server
+        run: |
+          cd PrometheusIntegration
+          nohup python manage.py runserver 0.0.0.0:8000 &
+          sleep 10  # Wait for server to start
+
+      - name: Test the Django endpoint
+        run: |
+          # Option 1: Create the test file dynamically
+          echo "This is a test file." > testfile.txt
+          # Uncomment the line below to use Option 2 instead
+          # cp PrometheusIntegration/manage.py testfile.txt
+
+          # Test with different content types
+          curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: application/json" -d '{}' | grep 'Hello World'
+          curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: text/plain" -d 'text content' | grep 'Hello World'
+          curl -X POST http://127.0.0.1:8000/api/hello/ -F 'file=@testfile.txt' | grep 'Hello World'
