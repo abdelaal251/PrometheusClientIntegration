@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install django psycopg2-binary django-prometheus prometheus-client
+          pip install django==3.2 psycopg2-binary django-prometheus prometheus-client
 
       - name: Set up Django environment
         env:
@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install django django-prometheus prometheus-client
+          pip install django==5.1.1 django-prometheus prometheus-client
 
       - name: Run Django server
         run: |
