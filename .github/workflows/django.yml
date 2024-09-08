@@ -1,4 +1,4 @@
-name: Django Build and Test
+name: Django Build, Test, and Monitor
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install django psycopg2-binary
+          pip install django psycopg2-binary django-prometheus prometheus-client
 
       - name: Set up Django environment
         env:
@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install django
+          pip install django django-prometheus prometheus-client
 
       - name: Run Django server
         run: |
@@ -76,12 +76,11 @@ jobs:
 
       - name: Test the Django endpoint
         run: |
-          # Option 1: Create the test file dynamically
           echo "This is a test file." > testfile.txt
-          # Uncomment the line below to use Option 2 instead
-          # cp PrometheusIntegration/manage.py testfile.txt
-
-          # Test with different content types
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: application/json" -d '{}' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: text/plain" -d 'text content' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -F 'file=@testfile.txt' | grep 'Hello World'
+
+      - name: Test Prometheus metrics endpoint
+        run: |
+          curl -s http://127.0.0.1:8000/metrics | grep 'hello_world_requests'
