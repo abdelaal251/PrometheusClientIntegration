@@ -34,12 +34,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.12.5'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install django==3.2 psycopg2-binary django-prometheus prometheus-client
+          pip install django==5.1.1 psycopg2-binary django-prometheus prometheus-client
 
       - name: Set up Django environment
         env:
@@ -50,7 +49,7 @@ jobs:
           cd PrometheusIntegration
           python manage.py migrate
 
-  test:
+  test_hello_endpoint:
     runs-on: ubuntu-latest
     needs: build
 
@@ -61,11 +60,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.12.5'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install django==5.1.1 django-prometheus prometheus-client
 
       - name: Run Django server
@@ -74,13 +72,36 @@ jobs:
           nohup python manage.py runserver 0.0.0.0:8000 &
           sleep 10  # Wait for server to start
 
-      - name: Test the Django endpoint
+      - name: Test the hello endpoint
         run: |
           echo "This is a test file." > testfile.txt
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: application/json" -d '{}' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -H "Content-Type: text/plain" -d 'text content' | grep 'Hello World'
           curl -X POST http://127.0.0.1:8000/api/hello/ -F 'file=@testfile.txt' | grep 'Hello World'
 
-      - name: Test Prometheus metrics endpoint
+  test_metrics_endpoint:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12.5'
+
+      - name: Install dependencies
+        run: |
+          pip install django==5.1.1 django-prometheus prometheus-client
+
+      - name: Run Django server
+        run: |
+          cd PrometheusIntegration
+          nohup python manage.py runserver 0.0.0.0:8000 &
+          sleep 10  # Wait for server to start
+
+      - name: Test the Prometheus metrics endpoint
         run: |
           curl -s http://127.0.0.1:8000/metrics | grep 'hello_world_requests'
